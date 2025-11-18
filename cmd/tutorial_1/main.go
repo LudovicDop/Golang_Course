@@ -7,6 +7,7 @@ import (
 )
 
 var wg = sync.WaitGroup{}
+var m = sync.RWMutex{}
 var mutex = sync.Mutex{}
 var fakeDb []string = []string{"user1", "user2", "user3", "user4", "user5", "user6"}
 var result []string
@@ -29,10 +30,20 @@ func dbCall(i int) {
 
 	// fmt.Printf("delay: %v\n", delay)
 	time.Sleep(time.Duration(3) * time.Second)
-	fmt.Printf("The result is: %v\n", i)
-	mutex.Lock()
-	result = append(result, fakeDb[i])
-	mutex.Unlock()
+	save(fakeDb[i])
+	log()
 	wg.Done()
 
+}
+
+func save(fakeDb string) {
+	mutex.Lock()
+	result = append(result, fakeDb)
+	mutex.Unlock()
+}
+
+func log() {
+	m.RLock()
+	fmt.Printf("The result is: %v\n", result)
+	m.RUnlock()
 }
